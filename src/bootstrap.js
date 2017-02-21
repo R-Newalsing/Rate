@@ -11,15 +11,7 @@ Vue.use(require('vuefire'));
  * sorted for an easy way to rank people with vue components
  */
 
-import Sortable from 'sortablejs';
 import draggable from 'vuedraggable';
-// 
-// Vue.directive('sortable', {
-//     inserted: function (el, binding) {
-//         new Sortable(el, binding.value || {})
-//     },
-//     
-// })
 
 /**
  * A library with components that will build of a pretty interface and an

@@ -11,7 +11,8 @@ const config = {
 firebase.initializeApp(config);
 window.db = firebase.database();
 
-Vue.component('test', require('./components/test.vue'));
+Vue.component('rate', require('./components/rate.vue'));
+Vue.component('draggable', require('vuedraggable'));
 
 const app = new Vue({
     el: '#app'
