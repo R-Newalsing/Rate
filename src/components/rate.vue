@@ -3,11 +3,22 @@
         <md-card
             class="question">
             <md-card-header>
-                <div class="md-title">De vraag</div>
+                <div class="md-title">
+                    Wie is de ideale schoonzoon?
+                </div>
+                <div class="md-subhead">
+                    Rangschik je collega's met jouw nummer 1 bovenaan en de laatste onderaan
+                </div>
             </md-card-header>
         </md-card>
-        
-        <md-card v-if="!user">
+        <md-card v-if="! show">
+            <md-card-area>
+                <md-card-content>
+                    <md-progress md-indeterminate></md-progress>
+                </md-card-content>
+            </md-card-area>
+        </md-card>
+        <md-card v-if="!user && show">
             <md-card-area>
 
                 <md-card-header>
@@ -26,14 +37,14 @@
         <draggable
             :list="users"
             @update="saveRating"
-            v-if="user">
-            <md-card v-for="u in users">
+            v-if="user && show">
+            <md-card v-for="(u, index) in users">
                 <md-card-header>
                     <md-avatar>
                         <img alt="People" :src="u.photo">
                     </md-avatar>
                     <div class="md-title">{{ u.name }}</div>
-                    <div class="md-subhead">Subtitle here</div>
+                    <div class="md-subhead">Schoonzoon nr. {{ index + 1 }}</div>
                 </md-card-header>
             </md-card>
         </draggable>
@@ -46,12 +57,20 @@ export default {
         return {
             user: firebase.auth().currentUser,
             users: [],
+            show: false
         }
     },
     
     mounted() {
-          if (!this.user) {
-          }
+        var that = this;
+        
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                that.saveUser(user);
+            } else {
+                that.show = true;
+            }
+        });
     },
     
     methods: {
@@ -61,7 +80,7 @@ export default {
         login () {
             firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider())
                 .then((result) => {
-                    this.saveUser(result.user);                    
+                    this.saveUser(result.user);
                 });
         },
         
@@ -78,25 +97,26 @@ export default {
                 // get users
                 firebase.database().ref('users').once('value')
                     .then((snapshot) => {
-                        let users = snapshot.val();
+                        var users = snapshot.val();
                         
-                        if (this.rating.length) {
-                            for (var index in this.rating) {
-                                for (var key in users) {
-                                    if (this.rating[index].user == key && this.user.uid != key) {
-                                        users[key].key = key;
-                                        this.users.push(users[key]);
-                                    }
-                                }
-                            }
-                        } else {
+                        for (var index in this.rating) {
                             for (var key in users) {
-                                if (this.user.uid != key) {
+                                if (this.rating[index].user == key && this.user.uid != key) {
                                     users[key].key = key;
                                     this.users.push(users[key]);
+                                    delete users[key];
                                 }
                             }
-                        }            
+                        }
+                        
+                        for (var key in users) {
+                            if (this.user.uid != key) {
+                                users[key].key = key;
+                                this.users.push(users[key]);
+                            }
+                        }
+                        
+                        this.show = true;
                     });
             });
                 

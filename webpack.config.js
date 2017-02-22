@@ -90,9 +90,14 @@ module.exports.module = {
         },
 
         {
-            test: /\.js$/,
+            test: /\.jsx?$/,
             exclude: /(node_modules|bower_components)/,
             loader: 'babel-loader' + Mix.babelConfig()
+        },
+
+        {
+            test: /\.css$/,
+            loaders: ['style-loader', 'css-loader']
         },
 
         {
@@ -129,14 +134,25 @@ if (Mix.preprocessors) {
             loader: extractPlugin.extract({
                 fallbackLoader: 'style-loader',
                 loader: [
-                    'css-loader' + sourceMap,
-                    'postcss-loader' + sourceMap
-                ].concat(toCompile.type == 'sass' ? [
-                    'resolve-url-loader' + sourceMap,
-                    'sass-loader?sourceMap&precision=8'
-                ] : [
-                    'less-loader' + sourceMap
-                ])
+                    { loader: 'css-loader' + sourceMap },
+                    { loader: 'postcss-loader' + sourceMap }
+                ].concat(
+                    toCompile.type == 'sass' ? [
+                        { loader: 'resolve-url-loader' + sourceMap },
+                        {
+                            loader: 'sass-loader?sourceMap',
+                            options: Object.assign({
+                                precision: 8,
+                                outputStyle: 'expanded'
+                            }, toCompile.pluginOptions)
+                        }
+                    ] : [
+                        {
+                            loader: 'less-loader' + sourceMap,
+                            options: toCompile.pluginOptions
+                        }
+                    ]
+                )
             })
         });
 
@@ -218,7 +234,8 @@ module.exports.devtool = Mix.sourcemaps;
 module.exports.devServer = {
     historyApiFallback: true,
     noInfo: true,
-    compress: true
+    compress: true,
+    quiet: true
 };
 
 
@@ -235,18 +252,11 @@ module.exports.devServer = {
  */
 
 module.exports.plugins = (module.exports.plugins || []).concat([
-    new webpack.ProvidePlugin(Mix.autoload || {
-        jQuery: 'jquery',
-        $: 'jquery',
-        jquery: 'jquery',
-        'window.jQuery': 'jquery'
-    }),
-
     new plugins.FriendlyErrorsWebpackPlugin(),
 
     new plugins.StatsWriterPlugin({
         filename: 'mix-manifest.json',
-        transform: Mix.manifest.transform,
+        transform: Mix.manifest.transform.bind(Mix.manifest),
     }),
 
     new plugins.WebpackMd5HashPlugin(),
@@ -262,7 +272,6 @@ module.exports.plugins = (module.exports.plugins || []).concat([
         }
     })
 ]);
-
 
 
 if (Mix.notifications) {
@@ -281,26 +290,6 @@ module.exports.plugins.push(
         stats => Mix.events.fire('build', stats)
     )
 );
-
-
-if (Mix.versioning) {
-    Mix.versioning.record();
-
-    module.exports.plugins.push(
-        new plugins.WebpackOnBuildPlugin(() => {
-            Mix.versioning.prune(Mix.publicPath);
-        })
-    );
-}
-
-
-if (Mix.combine || Mix.minify) {
-    module.exports.plugins.push(
-        new plugins.WebpackOnBuildPlugin(() => {
-            Mix.concatenateAll().minifyAll();
-        })
-    );
-}
 
 
 if (Mix.copy) {
@@ -335,7 +324,8 @@ if (Mix.inProduction) {
         new webpack.optimize.UglifyJsPlugin({
             sourceMap: true,
             compress: {
-                warnings: false
+                warnings: false,
+                drop_console: true
             }
         })
     ]);
