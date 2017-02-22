@@ -150,9 +150,16 @@ export default {
     
     .md-card {
         margin-bottom: 5px;
+        flex-direction: row;
         
         &.question {
             margin-bottom: 20px;
+        }
+        
+        .md-card-header {
+            margin-bottom: 0;
+            width: 100%;
+            cursor: move;
         }
     }
 }
