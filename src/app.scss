@@ -5,4 +5,41 @@
 body {
     background: url(https://wallpaperscraft.com/image/minimalism_sky_clouds_sun_mountains_lake_landscape_95458_1920x1080.jpg) no-repeat center center fixed;
     background-size: cover;
+    height: 100vh;
+}
+
+.rate,
+.result {
+    overflow: auto;
+    height: 100vh;
+    
+    .inner {
+        width: 95%;
+        margin: 0 auto;
+        padding: 30px 0;
+        
+    }
+}
+
+#app {
+    height: 100vh;
+    overflow: hidden;
+}
+
+@media only screen and (min-device-width: 768px) {
+    .rate,
+    .result {
+        .inner {
+            width: 75%;
+        }
+    }
+}
+
+@media only screen and (min-device-width: 1224px) {
+    .rate,
+    .result {
+        .inner {
+            width: 30%;
+        }
+    }
 }
